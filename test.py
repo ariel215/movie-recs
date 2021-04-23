@@ -10,8 +10,10 @@ def test_lda():
 def test_tags():
     cfg = {'tags': 'movie_tags.csv'}
     searcher = TagSearcher(cfg)
-    names = searcher.search("80s horror")
-    print(names[:5])
+    for query in ["horror", "80's horror", "World War II", "Jewish"]:
+        print("Search: {}".format(query))
+        print(searcher.search(query)[:5])
+
 
 
 def test_literals():
@@ -24,6 +26,6 @@ def test_literals():
 
 if __name__ == "__main__":
 
-    test_lda()
-    #test_tags()
+    # test_lda()
+    test_tags()
     #test_literals()

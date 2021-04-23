@@ -6,6 +6,11 @@ import os
 import numpy as np
 import pandas as pd
 import itertools
+import num2words
+
+
+class BadQueryError(Exception):
+    pass
 
 
 class Searcher(object):
@@ -19,6 +24,24 @@ class Searcher(object):
     def search(self, string):
         raise NotImplementedError
 
+    def _clean_query_word(self, qword):
+        # turn decades into words
+        decade = qword.rstrip("'s")
+        if decade.isnumeric():
+            return num2words.num2words(int(decade))
+
+        else:
+            return qword.lower()
+
+    def clean_query(self, query_string):
+        return [self._clean_query_word(qword)  for qs in query_string.split()
+            for qword in qs.split('/')]
+
+    def search(self, string):
+        return self._search(self.clean_query(string))
+
+    def _search(self, qlist):
+        raise NotImplementedError
 
 class LiteralSearcher(Searcher):
 
@@ -29,9 +52,8 @@ class LiteralSearcher(Searcher):
         self.movie_list = sheet[0].values
         self.tags = sheet.iloc[:, 1:]
 
-    def search(self,string_):
+    def _search(self, query):
 
-        query = string_.split()
         match  = np.ones(self.movie_list.shape,bool)
         for term in query:
             match = match & (self.tags == term.strip()).any(axis=1).values
@@ -47,29 +69,35 @@ class TagSearcher(Searcher):
         sheet = pd.read_csv(os.path.join(self.location, 'data', config['tags']),
                             header=None)
         self.movie_list = sheet[0].values
-        self.tags = sheet.iloc[:, 1:]
         self.model = word2vec.load(
             os.path.join(os.path.dirname(__file__), 'data', 'word2vec.model')
         )
+        self.tags = [self.fix_tags(r.dropna().to_list()) for _, r in sheet.iloc[:, 1:].iterrows()]
 
-    @staticmethod
-    def fix_tags(words: list):
+    def fix_tags(self, words: list):
         words = itertools.chain.from_iterable([x.lower().split() for x in words])
         words = itertools.chain.from_iterable([x.split('/') for x in words])
-        return list(words)
+        return [w for w in words if w in self.model]
 
-    def search(self, string):
-        query = [EbertCorpus.preprocess(s) for s in string.split()]
-        sims = [None for _ in self.tags.iterrows()]
-        for i, row in self.tags.iterrows():
+    def similarity(self, tags, query):
+        qscores = [min(self.model.distance(q, t) for t in tags) for q in query]
+        avg = np.linalg.norm(qscores, 4)
+        return avg
+
+    def _search(self, query):
+        for q in query:
+            if q not in self.model:
+                raise BadQueryError(q)
+
+        sims = [None for _ in self.tags]
+        for i, row in enumerate(self.tags):
             try:
-                similarity = self.model.n_similarity(
-                        self.fix_tags(row.dropna().tolist()),
-                        query)
+                similarity = self.similarity(
+                        row, query)
                 sims[i] = similarity
             except KeyError:
-                print("Could not compute similarity for row %d"%i)
-                sims[i] = -np.inf
+                print("Could not compute similarity for tag {}".format(row))
+                sims[i] = +np.inf
         sim_idxs = np.argsort(sims)
         return self.movie_list[sim_idxs]
 
@@ -84,7 +112,7 @@ class LDASearcher(Searcher):
         self.corpus = EbertCorpus()
         self.sim_index = Similarity('sim', self.model[self.corpus], self.model.num_topics)
 
-    def search(self, string):
+    def _search(self, string):
         query = EbertCorpus.preprocess([s for s in string.split()])
         bow = self.corpus.bag(self.corpus.bag(query))
         if len(bow) == 0:

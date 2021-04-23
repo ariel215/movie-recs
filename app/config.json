@@ -1,5 +1,5 @@
 {
   "searcher": "tags",
-  "model": "ebert.lda",
+  "model": "word2vec.model",
   "tags": "movie_tags.csv"
 }
