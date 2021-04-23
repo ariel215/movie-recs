@@ -1,6 +1,6 @@
 import gensim.models.ldamodel as lda
 from gensim.similarities import Similarity
-import gensim.downloader as api
+from gensim.models.keyedvectors import Word2VecKeyedVectors as word2vec
 from reviews.review_lda import EbertCorpus
 import os
 import numpy as np
@@ -44,11 +44,13 @@ class TagSearcher(Searcher):
     def __init__(self, config):
         super(TagSearcher, self).__init__(config)
 
-        sheet = pd.read_csv(os.path.join(self.location,'data',config['tags']),
+        sheet = pd.read_csv(os.path.join(self.location, 'data', config['tags']),
                             header=None)
         self.movie_list = sheet[0].values
         self.tags = sheet.iloc[:, 1:]
-        self.model = api.load('glove-wiki-gigaword-50')
+        self.model = word2vec.load(
+            os.path.join(os.path.dirname(__file__), 'data', 'word2vec.model')
+        )
 
     @staticmethod
     def fix_tags(words: list):

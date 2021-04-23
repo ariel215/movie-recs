@@ -1,8 +1,8 @@
 from PyQt5 import QtWidgets
 import sys
-import yaml
 import os.path
 import app.model
+import json
 
 
 class App(QtWidgets.QApplication):
@@ -28,8 +28,8 @@ class Controller(QtWidgets.QWidget):
         self.submit_button = SubmitButton(self, self)
         self.results_list = ResultsList()
         self.query_box = QueryBox(self, self)
-        with open(os.path.join(os.path.dirname(__file__), 'config.yaml')) as cfgfd:
-            self.config = yaml.load(cfgfd)
+        with open(os.path.join(os.path.dirname(__file__), 'config.json')) as cfgfd:
+            self.config = json.load(cfgfd)
         searcher_cls = self.searchers[self.config['searcher']]
         self.searcher = searcher_cls(self.config)
 
@@ -92,4 +92,4 @@ if __name__ == "__main__":
 
     app = App(sys.argv)
     app.window.show()
-    sys.exit(app.exec_())
+    app.exec_()

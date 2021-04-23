@@ -24,6 +24,6 @@ def test_literals():
 
 if __name__ == "__main__":
 
-    #test_lda()
+    test_lda()
     #test_tags()
-    test_literals()
+    #test_literals()
