@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block body -%}
+<div class="search-result-list">
+{% for result in results -%}
+    <div class="search-result">
+    {{ result }}
+    </div>
+{%endfor %}
+</div>
+{%endblock %}

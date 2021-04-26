@@ -1,5 +1,8 @@
 from app.model import LDASearcher, TagSearcher, LiteralSearcher
+from pytest import mark, fixture
+import jinja2
 
+@mark("searcher")
 def test_lda():
     cfg = {'model': 'ebert.lda'}
     searcher = LDASearcher(cfg)
@@ -7,6 +10,7 @@ def test_lda():
     print(names[:5])
 
 
+@mark("searcher")
 def test_tags():
     cfg = {'tags': 'movie_tags.csv'}
     searcher = TagSearcher(cfg)
@@ -15,17 +19,10 @@ def test_tags():
         print(searcher.search(query)[:5])
 
 
-
+@mark("searcher")
 def test_literals():
     cfg  = {'tags': 'movie_tags.csv'}
     searcher = LiteralSearcher(cfg)
     names = searcher.search("Sports")
 
     print(names)
-
-
-if __name__ == "__main__":
-
-    # test_lda()
-    test_tags()
-    #test_literals()
