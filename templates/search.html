@@ -1,10 +1,25 @@
 {% extends 'base.html' %}
+<script>
+    var results = [{% for result in results -%}"{{result}}",{%endfor%}];
+    var lst = document.getElementByID("search-result-list");
+    var pageSize = 5;
+    var idx = 0;
+    function makeListItem(index){
+        let newelt = document.createElement("li");
+        newelt.appendChild(document.createTextNode(results[idx]);
+        lst.appendChild(newelt);
+    }
+    function ShowMore(){
+        for(let i = 0; i < pageSize; i++){
+            makeListItem(idx+i);
+        }
+        idx += pageSize;
+    }
+</script>
+
 {% block body -%}
-<div class="search-result-list">
-{% for result in results -%}
-    <div class="search-result">
-    {{ result }}
-    </div>
-{%endfor %}
-</div>
+<ul id="search-result-list" onload="showMore()">
+
+</ul>
+<button onclick="showMore()">Show More</button>
 {%endblock %}

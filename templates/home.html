@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block body %}
-<form action="/search">
-    <p>Miranda's Movie Recommending Engine</p>
+<form id="search-form" class="search" action="/search">
+    <h1>Miranda's Movie Recommending Engine</h1>
     <input type="text" id="search-query" name="search-query"
-           placeholder="I want to watch..." size=40
+           placeholder="I want to watch..."
            autofocus
     >
     <button formmethod="get" type="button">Search</button>

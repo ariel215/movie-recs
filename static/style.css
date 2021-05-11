@@ -1,0 +1,22 @@
+body {
+    background-color: #8FB4AA;
+}
+
+#search-query {
+    size: 40;
+}
+
+.search {
+    text-align: center;
+    position
+}
+
+.search * {
+    border: 2px solid black;
+    padding: 5px;
+}
+
+h1 {
+    width: max-content;
+    margin: 0 auto 1.5em;
+}
