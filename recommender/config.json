@@ -3,5 +3,4 @@
   "model": "word2vec.model",
   "tags": "movie_tags.csv",
   "SECRET_KEY": "DEV",
-  ""
 }

@@ -1,4 +1,4 @@
-from app.model import LDASearcher, TagSearcher, LiteralSearcher
+from recommender.model import LDASearcher, TagSearcher, LiteralSearcher
 from pytest import mark, fixture
 import jinja2
 

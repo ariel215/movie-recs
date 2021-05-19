@@ -1,5 +1,5 @@
 import flask
-import app.model
+import recommender.model
 import os, json
 
 
@@ -34,7 +34,7 @@ def app_factory(test_config=None):
         cfg = test_config
     _app.config.from_mapping(cfg)
 
-    _app.set_searcher(app.model.TagSearcher(cfg))
+    _app.set_searcher(recommender.model.TagSearcher(cfg))
     return _app
 
 

@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets
 import sys
 import os.path
-import app.model
+import recommender.model
 import json
 
 
@@ -18,9 +18,9 @@ class App(QtWidgets.QApplication):
 class Controller(QtWidgets.QWidget):
 
     searchers = {
-        'lda': app.model.LDASearcher,
-        'tags': app.model.TagSearcher,
-        'literal': app.model.LiteralSearcher,
+        'lda': recommender.model.LDASearcher,
+        'tags': recommender.model.TagSearcher,
+        'literal': recommender.model.LiteralSearcher,
     }
 
     def __init__(self, parent):
@@ -90,6 +90,6 @@ class SubmitButton(QtWidgets.QPushButton):
 
 if __name__ == "__main__":
 
-    app = App(sys.argv)
+    recommender = App(sys.argv)
     app.window.show()
     app.exec_()

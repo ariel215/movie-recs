@@ -1,4 +1,4 @@
-from app import view
+from recommender import view
 import sys
 
 
