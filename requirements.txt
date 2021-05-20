@@ -1,0 +1,7 @@
+gensim
+num2words
+flask
+gunicorn
+numpy
+pandas
+scipy
