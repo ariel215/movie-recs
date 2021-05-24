@@ -1,5 +1,2 @@
-web: gunicorn server:app
-local: gunicorn server:app
+web: gunicorn server:application
 dev: python -m flask server.py
-
-
