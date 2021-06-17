@@ -1,10 +1,27 @@
 {% extends 'base.html' %}
 {% block body -%}
-<div class="search-result-list">
-{% for result in results -%}
-    <div class="search-result">
-    {{ result }}
-    </div>
-{%endfor %}
-</div>
+<h1> Movies with: "{{request}}" </h1>
+<li class="search-result-list" id="search-result-list">
+
+</li>
+<button id="more"> Show More</button>
+
+<script id="data" type="application/json">{{ {"results": results.tolist()}| tojson}}
+</script>
+<script type="application/javascript">
+    window.results=JSON.parse(document.getElementById("data").text).results;
+    window.result_list = document.getElementById("search-result-list");
+    window.more_button = document.getElementById("more");
+    function show_more(event) {
+        count = window.result_list.children.length;
+        for (i = count; i < Math.min(window.results.length, count+20); i++){
+            newelt = document.createElement("li");
+            newelt.textContent = window.results[i];
+            window.result_list.appendChild(newelt);
+        }
+    }
+    window.more_button.onclick = show_more;
+    show_more()
+</script>
+
 {%endblock %}

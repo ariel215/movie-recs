@@ -50,4 +50,6 @@ def main():
 def search():
     query = flask.request.args.get('search-query')
     results = application.search(query)
-    return application.render_template('search.html', "Movie Recommender -- Results", results=results)
+    return application.render_template('search.html', "Movie Recommender -- Results",
+                                       request=query,
+                                       results=results)
