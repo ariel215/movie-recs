@@ -2,13 +2,9 @@ body {
     background-color: #8FB4AA;
 }
 
-#search-query {
-    size: 40;
-}
 
 .search {
     text-align: center;
-    position
 }
 
 .search * {
@@ -19,4 +15,9 @@ body {
 h1 {
     width: max-content;
     margin: 0 auto 1.5em;
+}
+
+html {
+    visibility: visible;
+    opacity: 1
 }
