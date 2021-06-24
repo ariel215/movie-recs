@@ -21,9 +21,6 @@ class Searcher(object):
         self.config = config
         self.location = os.path.dirname(__file__)
 
-    def search(self, string):
-        raise NotImplementedError
-
     def _clean_query_word(self, qword):
         # turn decades into words
         decade = qword.rstrip("'s")

@@ -26,3 +26,9 @@ def test_literals():
     names = searcher.search("Sports")
 
     print(names)
+
+
+if __name__ == "__main__":
+    cfg = {'tags': 'movie_tags.csv'}
+    searcher = TagSearcher(cfg)
+    input("press any key to continue")

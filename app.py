@@ -8,11 +8,11 @@ class MyApp(flask.Flask):
         super(MyApp, self).__init__(*args, **kwargs)
         self.searcher = None
 
-    def set_searcher(self, searcher):
-        self.searcher = searcher
-
     def search(self, string):
         return self.searcher.search(string)
+
+    def set_searcher(self, srch):
+        self.searcher = srch
 
     def render_template(self, template, title, **kwargs):
         return flask.render_template(template, styles=[
@@ -21,24 +21,22 @@ class MyApp(flask.Flask):
          **kwargs)
 
 
-def app_factory(test_config=None):
+def app_factory(config, searcher):
+    if searcher is None:
+        searcher = recommender.model.TagSearcher(config)
     _app = MyApp(__name__, instance_relative_config=True)
-    if test_config is None:
-        with open(os.path.join(
-            os.path.dirname(__file__),
-            'config.json'
-        )) as cfg_file:
-            cfg = json.load(cfg_file)
-
-    else:
-        cfg = test_config
-    _app.config.from_mapping(cfg)
-
-    _app.set_searcher(recommender.model.TagSearcher(cfg))
+    _app.set_searcher(searcher)
+    _app.config.from_mapping(config)
     return _app
 
 
-application = app_factory()
+with open(os.path.join(
+        os.path.dirname(__file__),
+        'config.json'
+)) as cfg_file:
+    cfg = json.load(cfg_file)
+# searcher = recommender.model.TagSearcher(cfg)
+application = app_factory(cfg, None)
 
 
 @application.route('/')

@@ -1,2 +1,2 @@
 web: gunicorn app:application
-dev: python -m flask server.py
+dev: python -m flask run
