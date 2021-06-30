@@ -4,6 +4,7 @@ import os, json
 from typing import Optional
 from pandas import DataFrame
 import pdb
+import random
 
 class MyApp(flask.Flask):
     def __init__(self, *args, **kwargs):
@@ -65,3 +66,16 @@ def movie(name: str):
     else:
         return flask.Response(status=404)
 
+
+@application.route('/lucky')
+def lucky():
+    movie = random.choice(application.searcher.movie_list)
+    return flask.redirect(f'/movies/{movie}')
+
+
+@application.route('/all')
+def show_all():
+    return application.render_template(
+        'all.html', 'All Movies',
+        table=application.searcher.sheet
+    )

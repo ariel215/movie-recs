@@ -58,6 +58,17 @@ def test_movie(webapp, movie_name):
     assert '200' in response.status
 
 
+@pytest.mark.app
+def test_lucky(webapp):
+    assert '302' in webapp.get('/lucky').status
+
+
+@pytest.mark.app
+def test_show_all(webapp):
+    assert '200' in webapp.get('/all').status
+
+
+
 if __name__ == "__main__":
     cfg = {'tags': 'movie_tags.csv'}
     searcher = TagSearcher(cfg)
