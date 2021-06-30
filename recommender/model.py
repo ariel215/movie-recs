@@ -63,13 +63,13 @@ class TagSearcher(Searcher):
     def __init__(self, config):
         super(TagSearcher, self).__init__(config)
 
-        sheet = pd.read_csv(os.path.join(self.location, 'data', config['tags']),
-                            header=None)
-        self.movie_list = sheet[0].values
+        self.sheet = pd.read_csv(os.path.join(self.location, 'data', config['tags']),
+                            header=None, index_col=0)
+        self.movie_list = self.sheet.index.values
         self.model = word2vec.load(
             os.path.join(os.path.dirname(__file__), 'data', 'word2vec.model')
         )
-        self.tags = [self.fix_tags(r.dropna().to_list()) for _, r in sheet.iloc[:, 1:].iterrows()]
+        self.tags = [self.fix_tags(r.dropna().to_list()) for _, r in self.sheet.iloc[:, 1:].iterrows()]
 
     def fix_tags(self, words: list):
         words = itertools.chain.from_iterable([x.lower().split() for x in words])
@@ -109,8 +109,7 @@ class LDASearcher(Searcher):
         self.corpus = EbertCorpus()
         self.sim_index = Similarity('sim', self.model[self.corpus], self.model.num_topics)
 
-    def _search(self, string):
-        query = EbertCorpus.preprocess([s for s in string.split()])
+    def _search(self, query):
         bow = self.corpus.bag(self.corpus.bag(query))
         if len(bow) == 0:
             return []

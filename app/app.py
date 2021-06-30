@@ -1,12 +1,14 @@
 import flask
 import recommender.model
 import os, json
-
+from typing import Optional
+from pandas import DataFrame
+import pdb
 
 class MyApp(flask.Flask):
     def __init__(self, *args, **kwargs):
         super(MyApp, self).__init__(*args, **kwargs)
-        self.searcher = None
+        self.searcher: Optional[recommender.model.TagSearcher] = None
 
     def search(self, string):
         return self.searcher.search(string)
@@ -51,3 +53,15 @@ def search():
     return application.render_template('search.html', "Movie Recommender -- Results",
                                        request=query,
                                        results=results)
+
+
+@application.route('/movies/<name>')
+def movie(name: str):
+    sheet: DataFrame = application.searcher.sheet
+    if name in sheet.index:
+        return application.render_template(
+            'movie.html', name, tags=sheet.loc[name, :].tolist()
+        )
+    else:
+        return flask.Response(status=404)
+

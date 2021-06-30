@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1> {{ movie }} </h1>
+<div id="tagcloud">
+    <ul>
+    {% for tag in tags -%}
+        <li class="tag link">{{ linkTag(tag) }}</li>
+    {%- endfor %}
+    </ul>
+</div>
+
+<a href="/">Home</a>
+{% endblock %}

@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
 {% block body -%}
 <h1> Movies with: "{{request}}" </h1>
+<a href="/">Home</a>
 <li class="search-result-list" id="search-result-list">
-
+<noscript>
+    {% for result in results.tolist() %}
+    <ul class="movie link" id="{{ result | escape }}">{{linkMovie(result)}}</ul>
+    {% endfor %}
+</noscript>
 </li>
 <button id="more"> Show More</button>
 
@@ -12,11 +17,18 @@
     window.results=JSON.parse(document.getElementById("data").text).results;
     window.result_list = document.getElementById("search-result-list");
     window.more_button = document.getElementById("more");
+    function linkMovie(name){
+        elt = document.createElement('a');
+        elt.href = 'movies/'+name.replace(/\s/g, '%20');
+        elt.innerText = name;
+        return elt
+        }
     function show_more(event) {
         count = window.result_list.children.length;
         for (i = count; i < Math.min(window.results.length, count+20); i++){
             newelt = document.createElement("li");
-            newelt.textContent = window.results[i];
+            inner = window.linkMovie(window.results[i]);
+            newelt.appendChild(inner);
             window.result_list.appendChild(newelt);
         }
     }
