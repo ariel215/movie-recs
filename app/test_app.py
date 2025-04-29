@@ -1,4 +1,3 @@
-from recommender.model import LDASearcher, TagSearcher, LiteralSearcher
 import pytest
 from . import app
 import jinja2, flask

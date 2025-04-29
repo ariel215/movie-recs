@@ -1,21 +1,21 @@
 import flask
-import recommender.model
 import os, json
-from typing import Optional
+from typing import List, Optional
 from pandas import DataFrame
-import pdb
 import random
+import model
+
+HERE = os.path.dirname(__file__)
 
 class MyApp(flask.Flask):
     def __init__(self, *args, **kwargs):
         super(MyApp, self).__init__(*args, **kwargs)
-        self.searcher: Optional[recommender.model.TagSearcher] = None
+        self.index: model.Index = model.Index.from_csv(
+            os.path.join(HERE, 'data', 'movie_tags.csv')
+        )
 
-    def search(self, string):
-        return self.searcher.search(string)
-
-    def set_searcher(self, srch):
-        self.searcher = srch
+    def search(self, string) -> List[str]:
+        return self.index.search(string)
 
     def render_template(self, template, title, **kwargs):
         return flask.render_template(template, styles=[
@@ -24,11 +24,8 @@ class MyApp(flask.Flask):
          **kwargs)
 
 
-def app_factory(config, searcher):
-    if searcher is None:
-        searcher = recommender.model.TagSearcher(config)
+def app_factory(config):
     _app = MyApp(__name__, instance_relative_config=True)
-    _app.set_searcher(searcher)
     _app.config.from_mapping(config)
     return _app
 
@@ -38,7 +35,6 @@ with open(os.path.join(
         'config.json'
 )) as cfg_file:
     cfg = json.load(cfg_file)
-# searcher = recommender.model.TagSearcher(cfg)
 application = app_factory(cfg, None)
 
 
@@ -58,7 +54,7 @@ def search():
 
 @application.route('/movies/<name>')
 def movie(name: str):
-    sheet: DataFrame = application.searcher.sheet
+    sheet: DataFrame = application.index.sheet
     if name in sheet.index:
         return application.render_template(
             'movie.html', name, tags=sheet.loc[name, :].tolist()
@@ -69,7 +65,7 @@ def movie(name: str):
 
 @application.route('/lucky')
 def lucky():
-    movie = random.choice(application.searcher.movie_list)
+    movie = random.choice(application.index.movie_list)
     return flask.redirect(f'/movies/{movie}')
 
 
@@ -77,5 +73,5 @@ def lucky():
 def show_all():
     return application.render_template(
         'all.html', 'All Movies',
-        table=application.searcher.sheet
+        table=application.index.sheet
     )
