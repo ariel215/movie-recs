@@ -9,11 +9,17 @@ class Movie:
     name: str
     tags: Set["Tag"]
 
+    def __hash__(self):
+        return hash((self.id_, self.name))
+
 @dataclass
 class Tag:
     id_: int
     value: str
     movies: Set[Movie]
+
+    def __hash__(self):
+        return hash((self.id_, self.value))
 
 _stemmer = PorterStemmer()
 
@@ -25,7 +31,7 @@ class Index:
 
     def add_movie(self, movie_name: str, movie_id: int, tags: List[str], tag_id: int):
         if tags:
-            self.movies[movie_name] = movie = Movie(movie_id, movie_name, {})
+            self.movies[movie_name] = movie = Movie(movie_id, movie_name, set())
             movie_id += 1
             
             for t in tags:
@@ -50,8 +56,8 @@ class Index:
 
 
     @classmethod
-    def from_csv(cls, csv: os.path.Pathlike, sep: str=',') -> Self:
-        with open(csv) as contents:
+    def from_csv(cls, csv: os.PathLike, sep: str=',') -> Self:
+        with open(csv, 'rt', encoding='utf8') as contents:
             movie_id = 0
             tag_id = 0
             index = cls({},{})
