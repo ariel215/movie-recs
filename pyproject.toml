@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "movie-recs"
+dynamic = ["version"]
+description = "A simple movie recommendation system"
+dependencies = [
+    "nltk~=3.9",
+    "flask~=3.1"
+    ]
+
+
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+ignore_missing_imports = true

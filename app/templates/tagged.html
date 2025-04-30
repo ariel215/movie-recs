@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block body %}
-<h1> {{ movie.name | capitalize }} </h1>
+<h1>Movies tagged "{{tag.value}}"</h1>
+{% for movie in movies %}
 <div class="card" >
-    <div class="card-body">
-        <div class="card-title"> {{ movie.name | capitalize}} </div>
+    <div class="card-header"> {{ movie.name }} </div>
+    <div class="card-body"> 
         {% for tag in movie.tags %} 
         <div class="tag"> <a href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a> </div>
         {% endfor %}
     </div>
 </div>
-
-<a href="/">Home</a>
-{% endblock %}
+{% endfor %}
+{%endblock %}

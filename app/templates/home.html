@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
-<form id="search-form" class="search" action="/search">
+<form id="search-form" class="search" action="/search" role="search">
     <h1>Miranda's Movie Recommending Engine</h1>
     <input type="text" id="search-query" name="search-query"
            placeholder="I want to watch..."
@@ -11,5 +11,5 @@
 </form>
 <a href="/lucky"> I'm feeling lucky!</a>
 <br />
-<a href="/all"> See all movies here</a>
+<a href="/all"> Browse </a>
 {% endblock %}

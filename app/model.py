@@ -54,6 +54,15 @@ class Index:
 
         return (movie_id, tag_id)
 
+    @classmethod
+    def from_lists(cls, movie_tags: List[List[str]]):
+        movie_id = 0
+        tag_id = 0
+        index = cls({},{})
+        for lst in movie_tags: 
+            movie, *tags = lst
+            (movie_id, tag_id) = index.add_movie(movie, movie_id, tags,tag_id)
+        return index
 
     @classmethod
     def from_csv(cls, csv: os.PathLike, sep: str=',') -> Self:
@@ -64,28 +73,23 @@ class Index:
             for line in contents:
                 name, *tag_line = line.lower().split(sep)
                 movie_id, tag_id = index.add_movie(name, movie_id, tag_line, tag_id)
-        return cls(index.movies,index.tags)
+            return index
     
 
     def search(self, query:str) -> List[Movie]:
-        result = []
-        title = self.movies.get(query)
-        if title:
-            result.append(title)
-        
-        tag_matches = []
-        tag_near_matches = []
+        result = set()
+        tag_matches = set()
+        tag_near_matches = set()
         words = query.split()
         for word in words:
             tag_match = self.tags.get(word) 
             if tag_match:
-                tag_matches.append(tag_match)
+                tag_matches.update(tag_match.movies)
             stem = _stemmer.stem(word)
             stem_match = self.tags.get(stem)
             if stem_match:
-                tag_near_matches.append(stem_match)
-        
-        result.extend(tag_matches)
-        result.extend(tag_near_matches)
-        return result
+                tag_near_matches.update(stem_match.movies)
+            result &= (tag_matches | tag_near_matches)
+
+        return list(result)
         
