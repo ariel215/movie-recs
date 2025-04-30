@@ -1,0 +1,19 @@
+{% macro linkTag(tag) -%}
+<a href="/search?search-query={{ tag | urlencode}}">{{ tag }}</a>
+{%- endmacro %}
+{% macro linkMovie(movie) -%}
+<a href="/movies/{{movie | urlencode }}">{{ movie }}</a>
+{%- endmacro %}
+{% macro movie_card(movie) -%}
+<div class="card" >
+    <div class="card-body">
+        <h3 class="card-title"> {{ movie.name | title}} </h3>
+        <details>
+            <summary> View Tags </summary>
+            {% for tag in movie.tags %} 
+             <a class="tag" href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a>
+            {% endfor %}
+        </details>
+    </div>
+</div>
+{%- endmacro %}

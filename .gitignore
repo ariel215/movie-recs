@@ -3,3 +3,7 @@
 reviews/*
 !reviews/*.py
 __pycache__
+build/
+.pytest_cache
+*.egg-info
+.vscode/

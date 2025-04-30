@@ -21,3 +21,16 @@ html {
     visibility: visible;
     opacity: 1
 }
+
+a.tag {
+    display: inline-block;
+    background-color: #F0E68C;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 5px;
+}
+a.tag:hover {
+    background-color: #D2B48C;
+    text-decoration: none;
+}

@@ -56,6 +56,10 @@ class Index:
 
     @classmethod
     def from_lists(cls, movie_tags: List[List[str]]):
+        """
+        Create an Index from a list of movie tags.
+        The first element of each sublist is the movie name, and the rest are tags.
+        """
         movie_id = 0
         tag_id = 0
         index = cls({},{})
@@ -89,7 +93,10 @@ class Index:
             stem_match = self.tags.get(stem)
             if stem_match:
                 tag_near_matches.update(stem_match.movies)
-            result &= (tag_matches | tag_near_matches)
+            if result:
+                result &= (tag_matches | tag_near_matches)
+            else:
+                result = tag_matches | tag_near_matches
 
         return list(result)
         

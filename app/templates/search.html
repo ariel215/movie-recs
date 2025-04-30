@@ -2,17 +2,7 @@
 {% block body -%}
 <h1> Movies with: "{{request}}" </h1>
 <a href="/">Home</a>
-<script>
-    console.log("movies:  {{ movies | map(attribute='name') | join(', ')}}");
-</script>
 {% for movie in movies %}
-<div class="card" >
-    <div class="card-header"> {{ movie.name }} </div>
-    <div class="card-body"> 
-        {% for tag in movie.tags %} 
-        <div class="tag"> <a href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a> </div>
-        {% endfor %}
-    </div>
-</div>
+{{macros.movie_card(movie) }}
 {% endfor %}
 {%endblock %}

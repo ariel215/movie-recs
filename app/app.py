@@ -60,7 +60,7 @@ def tagged(tag: str):
             'tagged.html',
             "Movie Recommender -- Tagged",
             tag=tagged,
-            movies=tagged.movies
+            movies=sorted(tagged.movies, key=lambda m: m.name)
         )
     else:
         return flask.Response(status=404)

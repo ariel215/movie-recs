@@ -1,14 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
 <h1> {{ movie.name | capitalize }} </h1>
-<div class="card" >
-    <div class="card-body">
-        <div class="card-title"> {{ movie.name | capitalize}} </div>
-        {% for tag in movie.tags %} 
-        <div class="tag"> <a href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a> </div>
-        {% endfor %}
-    </div>
-</div>
-
+{{macros.movie_card(movie) }}
 <a href="/">Home</a>
 {% endblock %}

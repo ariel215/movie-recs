@@ -2,13 +2,6 @@
 {% block body %}
 <h1>Movies tagged "{{tag.value}}"</h1>
 {% for movie in movies %}
-<div class="card" >
-    <div class="card-header"> {{ movie.name }} </div>
-    <div class="card-body"> 
-        {% for tag in movie.tags %} 
-        <div class="tag"> <a href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a> </div>
-        {% endfor %}
-    </div>
-</div>
+{{macros.movie_card(movie) }}
 {% endfor %}
 {%endblock %}
