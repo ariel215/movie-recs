@@ -1,7 +1,15 @@
 from dataclasses import dataclass
 import os
+import pdb
 from typing import Dict, List, Self, Set
 from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords
+try: 
+    stops = set(stopwords.words('english'))
+except LookupError:
+    import nltk
+    nltk.download('stopwords')
+    stops = set(stopwords.words('english'))
 
 @dataclass
 class Movie:
@@ -23,6 +31,7 @@ class Tag:
 
 _stemmer = PorterStemmer()
 
+
 @dataclass
 class Index: 
     movies: Dict[str, Movie]
@@ -34,10 +43,14 @@ class Index:
             self.movies[movie_name] = movie = Movie(movie_id, movie_name, set())
             movie_id += 1
             
-            for t in tags:
-                tag_words = set(t.split())
+            for t in (t.strip() for t in tags):
+                if not t:
+                    continue
+
+                tag_words = [word.strip() for word in t.split()]
                 if len(tag_words) > 1:
-                    tag_words.add(t)
+                    tag_words.append(t)
+                tag_words = {word for word in tag_words if word not in stops}
 
                 for word in tag_words:
                     tag = self.tags.get(word)
@@ -49,9 +62,8 @@ class Index:
                     if stemmed not in self.tags:
                         self.tags[stemmed] = tag
                     
-                    movie.tags.add(tag)
                     tag.movies.add(movie)
-
+                movie.tags.add(self.tags[t]) # Only add the original tag to the movie's tags
         return (movie_id, tag_id)
 
     @classmethod

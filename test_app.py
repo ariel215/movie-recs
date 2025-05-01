@@ -51,4 +51,9 @@ def test_search_exact(small_index):
     assert len(results) == 2
     assert all(any(tag.value in ['sci-fi', 'action'] for tag in movie.tags) for movie in results)
 
+    results = small_index.search('Marlon Brando drama')
+    assert len(results) == 2
+    result_names = {movie.name for movie in results}
+    assert 'The Godfather' in result_names
+    assert 'Apocalypse Now' in result_names
 
