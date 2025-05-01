@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
 {% block body %}
-{{ table.to_html(header=false) }}
+<h1> Browse Movies </h1>
+{% for movie in movies %}
+{{ macros.movie_card(movie) }}
+{% endfor %}
 {% endblock %}

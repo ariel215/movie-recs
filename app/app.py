@@ -88,6 +88,6 @@ def lucky():
 @application.route('/all')
 def show_all():
     return application.render_template(
-        'all.html', 'All Movies',
-        table=application.index.movies
+        'all.html', 'Movie Recommender -- Browse Movies',
+        movies=sorted(application.index.movies.values(), key=lambda m: m.name)
     )

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+import csv
 import pdb
 from typing import Dict, List, Self, Set
 from nltk.stem import PorterStemmer
@@ -81,14 +82,15 @@ class Index:
         return index
 
     @classmethod
-    def from_csv(cls, csv: os.PathLike, sep: str=',') -> Self:
-        with open(csv, 'rt', encoding='utf8') as contents:
+    def from_csv(cls, path: os.PathLike, sep: str=',') -> Self:
+        with open(path, 'rt', encoding='utf8') as contents:
             movie_id = 0
             tag_id = 0
+            reader = csv.reader(contents, delimiter=sep, quotechar='"')
             index = cls({},{})
-            for line in contents:
-                name, *tag_line = line.lower().split(sep)
-                movie_id, tag_id = index.add_movie(name, movie_id, tag_line, tag_id)
+            for row in reader:
+                name, *tags = row
+                movie_id, tag_id = index.add_movie(name, movie_id, tags, tag_id)
             return index
     
 
