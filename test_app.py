@@ -57,3 +57,7 @@ def test_search_exact(small_index):
     assert 'The Godfather' in result_names
     assert 'Apocalypse Now' in result_names
 
+
+def test_search_partial_names(small_index: model.Index):
+    assert small_index.search('godfather')[0].name == 'The Godfather'
+    assert small_index.search('apocalypse')[0].name == 'Apocalypse Now'

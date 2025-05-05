@@ -40,15 +40,16 @@ class Index:
 
 
     def add_movie(self, movie_name: str, movie_id: int, tags: List[str], tag_id: int):
+
         if tags:
-            self.movies[movie_name] = movie = Movie(movie_id, movie_name, set())
+            self.movies[movie_name.lower()] = movie = Movie(movie_id, movie_name, set())
             movie_id += 1
             
             for t in (t.strip() for t in tags):
                 if not t:
                     continue
 
-                tag_words = [word.strip() for word in t.split()]
+                tag_words = [word.strip().lower() for word in t.split()]
                 if len(tag_words) > 1:
                     tag_words.append(t)
                 tag_words = {word for word in tag_words if word not in stops}
@@ -56,7 +57,7 @@ class Index:
                 for word in tag_words:
                     tag = self.tags.get(word)
                     if not tag:
-                        self.tags[word] = tag = Tag(tag_id, word, set())
+                        self.tags[word.lower()] = tag = Tag(tag_id, word, set())
                         tag_id += 1
 
                     stemmed = _stemmer.stem(word)
@@ -64,7 +65,7 @@ class Index:
                         self.tags[stemmed] = tag
                     
                     tag.movies.add(movie)
-                movie.tags.add(self.tags[t]) # Only add the original tag to the movie's tags
+                movie.tags.add(self.tags[t.lower()]) # Only add the original tag to the movie's tags
         return (movie_id, tag_id)
 
     @classmethod
@@ -94,7 +95,37 @@ class Index:
             return index
     
 
+
     def search(self, query:str) -> List[Movie]:
+        """
+        Search for movies in the index based on a query string.
+
+        Movies are ranked based on the following criteria:
+
+        1. The entire query is an exact match for the movie name:
+           return that movie
+        2. The entire query is an exact for one or more of the movie's tags:
+           If the query matches a tag exactly, return the movies matching that tag
+           Otherwise, treat each word in the query as its own tag (except for stop words)
+           and return the set of movies with all those tags
+        3. The entire query is a partial match for the movie name
+        4. The query substantially (how much?) overlaps with one or more tags
+        
+        If none of these produce a non-empty result set, the following are checked:
+        5. The query is a misspelling of a movie name or tag
+        6. The query is semantically similar to either the set of tags or the movie name
+        
+        Movies are returned in alphabetical order
+        """
+        query = query.lower()
+
+        title = self.movies.get(query)
+        if title:
+            return [title]
+            
+        if match := self.tags.get(query):
+            return sorted(match.movies, key = lambda m: m.name)
+
         result = set()
         tag_matches = set()
         tag_near_matches = set()
@@ -107,10 +138,20 @@ class Index:
             stem_match = self.tags.get(stem)
             if stem_match:
                 tag_near_matches.update(stem_match.movies)
-            if result:
-                result &= (tag_matches | tag_near_matches)
-            else:
-                result = tag_matches | tag_near_matches
-
-        return list(result)
+        if result:
+            result &= (tag_matches | tag_near_matches)
+        else:
+            result = tag_matches | tag_near_matches
         
+        if result:
+            return sorted(result, key=lambda movie: movie.name)
+        
+        partial_names = sorted(
+            name for name in self.movies 
+            if query in name
+        )
+
+        if partial_names:
+            return [self.movies[name] for name in partial_names]
+        
+        return []
