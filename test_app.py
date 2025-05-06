@@ -1,70 +1,62 @@
-from app import model
-import os.path as osp
+from unittest.mock import Mock, patch, MagicMock
+from app.app import app_factory, application
 import pytest
 
-ROOT = osp.dirname(model.__file__)
-
-def test_from_csv():
-    csv_file = osp.join(ROOT, 'data', 'movie_tags.csv')
-    index = model.Index.from_csv(
-        csv_file
-    )
-    assert len(index.movies) == len(open(csv_file, encoding='utf8').readlines())
-
-
+from app.model import Movie, Tag
 
 @pytest.fixture
-def full_index():
-    csv_file = osp.join(ROOT, 'data', 'movie_tags.csv')
-    return model.Index.from_csv(csv_file)
+def client(small_index):
+    application.index = small_index
+    app = application.test_client()
+    app.testing = True
+    return app
 
 
-@pytest.fixture
-def small_index():
-    movies = [
-        ['The Matrix', 'sci-fi', 'action', 'cyberpunk', '2000s', 'neo', 'keanu reeves'],
-        ['Inception', 'sci-fi', 'action', 'mind-bending', '2010s', 'dream', 'leonardo dicaprio'],
-        ['The Godfather', 'crime', 'drama', 'mafia', '1970s', 'don corleone', 'marlon brando'],
-        ['Apocalypse Now', 'war', 'drama', 'vietnam war', '1970s', 'colonel kurtz', 'martin sheen', 'marlon brando'],
-    ]
-    return model.Index.from_lists(movies)
 
+def test_app_factory(small_index):
+    config = {'TESTING': True}
+    app = app_factory(config)
+    assert app.testing
 
-def test_from_lists(small_index):
-    assert len(small_index.movies) == 4
-    assert len(small_index.tags) > 0
-    assert 'sci-fi' in small_index.tags
-    assert 'drama' in small_index.tags
-    assert 'action' in small_index.tags
+def test_main_route(client):
+    response = client.get('/')
+    assert response.status_code == 200
+    assert b"Movie Recommender -- Search" in response.data
 
+def test_tagged_route(client):
+    response = client.get('/tagged/action')
+    assert response.status_code == 200
+    assert b"Movie Recommender -- Tagged" in response.data
 
-def test_search_exact(small_index):
+def test_tagged_route_404(client):
+    response = client.get('/tagged/unknown')
+    assert response.status_code == 404
 
-    results = small_index.search('drama')
-    assert len(results) == 2
-    assert all(any(tag.value == 'drama' for tag in movie.tags) for movie in results)
+def test_movie_route(client):
+    response = client.get('/movies/The Matrix')
+    assert response.status_code == 200
+    assert b"Movie Recommender -- The Matrix" in response.data
 
-    results = small_index.search('nonexistent tag')
-    assert len(results) == 0
+@patch('app.app.application.index.movies')
+def test_movie_route_404(mock_movies, client):
+    mock_movies.get.return_value = None
+    response = client.get('/movies/UnknownMovie')
+    assert response.status_code == 404
 
-    results = small_index.search('sci-fi action')
-    assert len(results) == 2
-    assert all(any(tag.value in ['sci-fi', 'action'] for tag in movie.tags) for movie in results)
+def test_lucky_route(client):
+    response = client.get('/lucky')
+    assert response.status_code == 302
+    assert b'/movies' in response.data
 
-    results = small_index.search('Marlon Brando drama')
-    assert len(results) == 2
-    result_names = {movie.name for movie in results}
-    assert 'The Godfather' in result_names
-    assert 'Apocalypse Now' in result_names
+def test_show_all_route(client):
+    response = client.get('/all')
+    assert response.status_code == 200
+    assert b"Movie Recommender -- Browse Movies" in response.data
 
-
-def test_search_partial_names(small_index: model.Index):
-    assert small_index.search('godfather')[0].name == 'The Godfather'
-    assert small_index.search('apocalypse')[0].name == 'Apocalypse Now'
-
-
-def test_search_partial_tags(small_index: model.Index):
-    results = small_index.search('cyberpunk war')
-    movie_names = [movie.name for movie in results]
-    assert 'The Matrix' in movie_names
-    assert 'Apocalypse Now' in movie_names
+@patch('app.app.application.search')
+def test_search_route(mock_search, client):
+    mock_search.return_value = [Mock(name="Movie1"), Mock(name="Movie2")]
+    response = client.get('/search?search-query=test')
+    assert response.status_code == 200
+    assert b"Movie Recommender -- Results" in response.data
+    mock_search.assert_called_with("test")
