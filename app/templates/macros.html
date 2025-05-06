@@ -1,9 +1,11 @@
 {% macro linkTag(tag) -%}
 <a href="/search?search-query={{ tag | urlencode}}">{{ tag }}</a>
 {%- endmacro %}
+
 {% macro linkMovie(movie) -%}
 <a href="/movies/{{movie | urlencode }}">{{ movie }}</a>
 {%- endmacro %}
+
 {% macro movie_card(movie) -%}
 <div class="card" >
     <div class="card-body">

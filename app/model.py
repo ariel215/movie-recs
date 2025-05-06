@@ -1,7 +1,7 @@
 from dataclasses import dataclass
+import enum
 import os
 import csv
-import pdb
 from typing import Dict, List, Self, Set, Tuple
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
@@ -18,7 +18,7 @@ class Movie:
     name: str
     tags: Set["Tag"]
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.id_, self.name))
 
 @dataclass
@@ -27,8 +27,20 @@ class Tag:
     value: str
     movies: Set[Movie]
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.id_, self.value))
+
+class ResultField(enum.Enum):
+    NAME = 0
+    TAGS = 1
+
+
+@dataclass
+class SearchResult:
+    field: ResultField
+    movie: Movie
+    words: List[str]
+
 
 _stemmer = PorterStemmer()
 
@@ -52,7 +64,7 @@ class Index:
                 tag_words = [word.strip().lower() for word in t.split()]
                 if len(tag_words) > 1:
                     tag_words.append(t)
-                tag_words = {word for word in tag_words if word not in stops}
+                tag_words = list({word for word in tag_words if word not in stops})
 
                 for word in tag_words:
                     tag = self.tags.get(word)
@@ -96,7 +108,7 @@ class Index:
     
 
 
-    def search(self, query:str) -> List[Movie]:
+    def search(self, query:str) -> List[SearchResult]:
         """
         Search for movies in the index based on a query string.
 
@@ -122,16 +134,16 @@ class Index:
         """
         query = query.lower()
 
-        title = self.movies.get(query)
-        if title:
-            return [title]
+        if title := self.movies.get(query):
+            return [SearchResult(ResultField.NAME,title,title.name.split())]
             
         if match := self.tags.get(query):
-            return sorted(match.movies, key = lambda m: m.name)
+            return [SearchResult(ResultField.TAGS, movie,[match.value])
+                     for movie in  sorted(match.movies, key = lambda m: m.name)]
 
-        result = set()
-        tag_matches = set()
-        tag_near_matches = set()
+        result: Set[Movie] = set()
+        tag_matches: Set[Movie] = set()
+        tag_near_matches: Set[Movie] = set()
         words = query.split()
         for word in words:
             tag_match = self.tags.get(word) 
@@ -147,24 +159,23 @@ class Index:
             result = tag_matches | tag_near_matches
         
         if result:
-            return sorted(result, key=lambda movie: movie.name)
+            return [SearchResult(ResultField.TAGS, movie, words) for movie in  sorted(result, key=lambda movie: movie.name)]
         
-        partial_names = sorted(
-            name for name in self.movies 
-            if query in name
-        )
+        if partial_names := sorted(
+            (SearchResult(ResultField.NAME, movie, query.split()) for (name, movie) in self.movies.items() 
+            if query in name),
+            key=lambda result: result.movie.name
+        ):
+            return partial_names
 
-        if partial_names:
-            return [self.movies[name] for name in partial_names]
-        
-        words = set(words)
-        results: List[Tuple[Movie,int]] = []
+        unique_words = set(words)
+        results: List[Tuple[SearchResult,int]] = []
         for movie in self.movies.values():
             tag_values = {tag.value for tag in movie.tags}
-            intersection = len(tag_values & words)
+            intersection = tag_values & unique_words
             if intersection:
-                results.append((movie,intersection))
+                results.append((SearchResult(ResultField.TAGS, movie,list(intersection)),len(intersection)))
         
-        return [m for m, i in sorted(results, key = lambda m_i: m_i[1])]
+        return [result for result, _ in sorted(results, key = lambda result_count: result_count[1])]
         
         

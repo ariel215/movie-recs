@@ -3,6 +3,7 @@ import os, json
 from typing import List
 import random
 import app.model as model
+from jinja2.filters import do_title
 
 HERE = os.path.dirname(__file__)
 
@@ -13,7 +14,7 @@ class MyApp(flask.Flask):
             os.path.join(HERE, 'data', 'movie_tags.csv')
         )
 
-    def search(self, string:str) -> List[model.Movie]:
+    def search(self, string:str) -> List[model.SearchResult]:
         return self.index.search(string)
 
     def render_template(self, template, title, **kwargs):
@@ -47,15 +48,13 @@ def main():
 def search():
     query = flask.request.args.get('search-query')
     movies = application.search(query)
-    print(f"movies: {",".join(m.name for m in movies)}")  # Debugging line to check search results
     return application.render_template('search.html', "Movie Recommender -- Results",
                                        request=query,
                                        movies=movies)
 
 @application.route('/tagged/<tag>')
 def tagged(tag: str): 
-    tagged = application.index.tags[tag]
-    if tagged:
+    if tagged := application.index.tags.get(tag.lower()):
         return application.render_template(
             'tagged.html',
             "Movie Recommender -- Tagged",
@@ -68,11 +67,11 @@ def tagged(tag: str):
 
 @application.route('/movies/<name>')
 def movie(name: str):
-    movie = application.index.movies.get(name)
+    movie = application.index.movies.get(name.lower())
     if movie:
         return application.render_template(
             'movie.html', 
-            f'Movie Recommender -- {movie.name.capitalize()}',
+            f'Movie Recommender -- {do_title(movie.name)}',
             movie=movie
         )
     else:
