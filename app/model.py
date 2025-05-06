@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 import csv
 import pdb
-from typing import Dict, List, Self, Set
+from typing import Dict, List, Self, Set, Tuple
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 try: 
@@ -109,12 +109,15 @@ class Index:
            Otherwise, treat each word in the query as its own tag (except for stop words)
            and return the set of movies with all those tags
         3. The entire query is a partial match for the movie name
-        4. The query substantially (how much?) overlaps with one or more tags
-        
-        If none of these produce a non-empty result set, the following are checked:
-        5. The query is a misspelling of a movie name or tag
+
+        If none of these produce a non-empty result set, check if:
+        4. The query is a misspelling of a movie name or tag
+
+        Otherwise:
+        5. Return the set of movies that contain one or more tags, ranked by how many tags they contain
         6. The query is semantically similar to either the set of tags or the movie name
         
+
         Movies are returned in alphabetical order
         """
         query = query.lower()
@@ -154,4 +157,14 @@ class Index:
         if partial_names:
             return [self.movies[name] for name in partial_names]
         
-        return []
+        words = set(words)
+        results: List[Tuple[Movie,int]] = []
+        for movie in self.movies.values():
+            tag_values = {tag.value for tag in movie.tags}
+            intersection = len(tag_values & words)
+            if intersection:
+                results.append((movie,intersection))
+        
+        return [m for m, i in sorted(results, key = lambda m_i: m_i[1])]
+        
+        

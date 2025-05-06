@@ -61,3 +61,10 @@ def test_search_exact(small_index):
 def test_search_partial_names(small_index: model.Index):
     assert small_index.search('godfather')[0].name == 'The Godfather'
     assert small_index.search('apocalypse')[0].name == 'Apocalypse Now'
+
+
+def test_search_partial_tags(small_index: model.Index):
+    results = small_index.search('cyberpunk war')
+    movie_names = [movie.name for movie in results]
+    assert 'The Matrix' in movie_names
+    assert 'Apocalypse Now' in movie_names
