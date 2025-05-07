@@ -47,10 +47,11 @@ def main():
 @application.route('/search')
 def search():
     query = flask.request.args.get('search-query')
-    movies = application.search(query)
+    results = application.search(query)
+    print(f"Search query: {query}, Results found: {len(results)}")
     return application.render_template('search.html', "Movie Recommender -- Results",
                                        request=query,
-                                       movies=movies)
+                                       results=results)
 
 @application.route('/tagged/<tag>')
 def tagged(tag: str): 

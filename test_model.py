@@ -32,7 +32,10 @@ def test_search_exact(small_index):
 
     results = small_index.search('sci-fi action')
     assert len(results) == 2
-    assert all(any(tag.value in ['sci-fi', 'action'] for tag in result.movie.tags) for result in results)
+    for result in results:
+        assert any(tag.value == 'sci-fi' for tag in result.movie.tags)
+        assert any(tag.value == 'action' for tag in result.movie.tags)
+
 
     results = small_index.search('Marlon Brando drama')
     assert len(results) == 2
@@ -40,6 +43,9 @@ def test_search_exact(small_index):
     assert 'The Godfather' in result_names
     assert 'Apocalypse Now' in result_names
 
+    results = small_index.search('sci-fi cyberpunk')
+    assert len(results) == 1
+    assert results[0].movie.name == 'The Matrix'
 
 def test_search_partial_names(small_index: model.Index):
     assert small_index.search('godfather')[0].movie.name == 'The Godfather'

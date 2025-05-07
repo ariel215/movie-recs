@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import enum
+import heapq
 import os
 import csv
-from typing import Dict, List, Self, Set, Tuple
+from typing import Dict, Iterable, List, Self, Set, Tuple
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 try: 
@@ -20,6 +21,13 @@ class Movie:
 
     def __hash__(self) -> int:
         return hash((self.id_, self.name))
+    
+    def __str__(self):
+        tags_str = ', '.join(tag.value for tag in self.tags)
+        return f"Movie(id={self.id_}, name='{self.name}', tags={tags_str})"
+
+    def __repr__(self):
+        return self.__str__()
 
 @dataclass
 class Tag:
@@ -29,6 +37,13 @@ class Tag:
 
     def __hash__(self) -> int:
         return hash((self.id_, self.value))
+    
+    def __str__(self):
+        movies_str = ', '.join(movie.name for movie in self.movies)
+        return f"Tag(id={self.id_}, value='{self.value}', movies={movies_str})"
+    
+    def __repr__(self):
+        return self.__str__()
 
 class ResultField(enum.Enum):
     NAME = 0
@@ -134,33 +149,22 @@ class Index:
         """
         query = query.lower()
 
+        # 1: Exact match for movie name
         if title := self.movies.get(query):
             return [SearchResult(ResultField.NAME,title,title.name.split())]
-            
-        if match := self.tags.get(query):
-            return [SearchResult(ResultField.TAGS, movie,[match.value])
-                     for movie in  sorted(match.movies, key = lambda m: m.name)]
+        
+        # 2: Exact match for single tag (1 or more words)
+        if matching_tag := self.tags.get(query):
+            return [SearchResult(ResultField.TAGS, movie,[matching_tag.value])
+                     for movie in  sorted(matching_tag.movies, key = lambda m: m.name)]
 
-        result: Set[Movie] = set()
-        tag_matches: Set[Movie] = set()
-        tag_near_matches: Set[Movie] = set()
-        words = query.split()
-        for word in words:
-            tag_match = self.tags.get(word) 
-            if tag_match:
-                tag_matches.update(tag_match.movies)
-            stem = _stemmer.stem(word)
-            stem_match = self.tags.get(stem)
-            if stem_match:
-                tag_near_matches.update(stem_match.movies)
-        if result:
-            result &= (tag_matches | tag_near_matches)
-        else:
-            result = tag_matches | tag_near_matches
+        unique_words = set(word.strip().lower() for word in query.split() if word.strip() and word.lower() not in stops)
+
+        # 3: Exact match for each tag in query (splitting on whitespace)
+        if matches_all_tags := self.matching_all_tags(unique_words):
+            return matches_all_tags
         
-        if result:
-            return [SearchResult(ResultField.TAGS, movie, words) for movie in  sorted(result, key=lambda movie: movie.name)]
-        
+        # 4: Partial match for movie name
         if partial_names := sorted(
             (SearchResult(ResultField.NAME, movie, query.split()) for (name, movie) in self.movies.items() 
             if query in name),
@@ -168,14 +172,68 @@ class Index:
         ):
             return partial_names
 
-        unique_words = set(words)
-        results: List[Tuple[SearchResult,int]] = []
-        for movie in self.movies.values():
+        # 5: Partial match for tags
+        if partial_tags := self.matching_any_tags(unique_words):
+            return partial_tags
+
+        return []        
+    
+    def matching_all_tags(self, words: Iterable[str]) -> List[SearchResult]:
+        """
+        Find movies that match all tags in the given list of words.
+        Returns a list of SearchResult objects for movies that match all tags.
+        """
+        if not words:
+            return []
+
+        unique_words = words if isinstance(words, set) else set(words) 
+
+        matching_movies = set()
+        for word in unique_words:
+            if tag := self.tags.get(word):
+                matching_movies.update(tag.movies)
+
+        results = []
+        for movie in matching_movies:
             tag_values = {tag.value for tag in movie.tags}
-            intersection = tag_values & unique_words
+            if tag_values.issuperset(unique_words):
+                results.append(SearchResult(ResultField.TAGS, movie, list(unique_words)))
+
+        return sorted(results, key=lambda result: result.movie.name,)
+
+    def matching_any_tags(self, words: Iterable[str]) -> List[SearchResult]:
+        """
+        Find movies that match any tag in the given list of words.
+        Returns a list of SearchResult objects for movies that match any tag.
+        """
+        if not words:
+            return []
+
+        unique_words = words if isinstance(words, set) else set(words)
+
+        matching_movies = set()
+        for word in unique_words:
+            if tag := self.tags.get(word):
+                matching_movies.update(tag.movies)
+
+        results = []
+        for movie in matching_movies:
+            tag_values = {tag.value for tag in movie.tags}
+            intersection = unique_words & tag_values
             if intersection:
-                results.append((SearchResult(ResultField.TAGS, movie,list(intersection)),len(intersection)))
+                results.append(SearchResult(ResultField.TAGS, movie, list(intersection)))
         
-        return [result for result, _ in sorted(results, key = lambda result_count: result_count[1])]
-        
-        
+        return sorted(results, key=lambda result: len(result.words), reverse=True) 
+
+if __name__ == "__main__":
+    here = os.path.dirname(os.path.abspath(__file__))
+    index = Index.from_csv(os.path.join(here,'data/movie_tags.csv'))
+
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description="Search movie tags index")
+    parser.add_argument('query', type=str, help="Query string to search for")
+    args = parser.parse_args()
+    results = index.search(args.query)
+    print("Search results:")
+    for result in results:
+        print(f"Movie: {result.movie.name}")
