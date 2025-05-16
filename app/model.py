@@ -45,10 +45,10 @@ class Tag:
     def __repr__(self):
         return self.__str__()
 
-class ResultField(enum.Enum):
+class ResultField(int, enum.Enum):
     NAME = 0
     TAGS = 1
-
+    NONE = 2
 
 @dataclass
 class SearchResult:

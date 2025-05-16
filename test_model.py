@@ -46,6 +46,8 @@ def test_search_exact(small_index):
     results = small_index.search('sci-fi cyberpunk')
     assert len(results) == 1
     assert results[0].movie.name == 'The Matrix'
+    assert 'sci-fi' in results[0].words
+    assert 'cyberpunk' in results[0].words
 
 def test_search_partial_names(small_index: model.Index):
     assert small_index.search('godfather')[0].movie.name == 'The Godfather'

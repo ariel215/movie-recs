@@ -13,6 +13,11 @@ class MyApp(flask.Flask):
         self.index: model.Index = model.Index.from_csv(
             os.path.join(HERE, 'data', 'movie_tags.csv')
         )
+        self.configure_jinja_env()
+
+    def configure_jinja_env(self):
+        self.jinja_env.filters['words'] = lambda s: s.split()
+        self.jinja_env.globals['ResultField'] = model.ResultField
 
     def search(self, string:str) -> List[model.SearchResult]:
         return self.index.search(string)
@@ -60,7 +65,7 @@ def tagged(tag: str):
             'tagged.html',
             "Movie Recommender -- Tagged",
             tag=tagged,
-            movies=sorted(tagged.movies, key=lambda m: m.name)
+            movies=[model.SearchResult(model.ResultField.NONE, movie, []) for movie in sorted(tagged.movies, key=lambda m: m.name)]
         )
     else:
         return flask.Response(status=404)
@@ -73,7 +78,7 @@ def movie(name: str):
         return application.render_template(
             'movie.html', 
             f'Movie Recommender -- {do_title(movie.name)}',
-            movie=movie
+            movie=model.SearchResult(model.ResultField.NONE, movie, [])
         )
     else:
         return flask.Response(status=404)
@@ -89,5 +94,9 @@ def lucky():
 def show_all():
     return application.render_template(
         'all.html', 'Movie Recommender -- Browse Movies',
-        movies=sorted(application.index.movies.values(), key=lambda m: m.name)
+        movies=[
+            model.SearchResult(model.ResultField.NONE, movie, [])
+            for movie in
+            sorted(application.index.movies.values(), key=lambda m: m.name)
+        ]
     )

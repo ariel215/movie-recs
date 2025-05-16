@@ -3,6 +3,6 @@
 <h1> Movies with: "{{request}}" </h1>
 <a href="/">Home</a>
 {% for result in results %}
-{{macros.movie_card(result.movie) }}
+{{macros.movie_card(result) }}
 {% endfor %}
 {%endblock %}

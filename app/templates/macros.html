@@ -6,14 +6,29 @@
 <a href="/movies/{{movie | urlencode }}">{{ movie }}</a>
 {%- endmacro %}
 
-{% macro movie_card(movie) -%}
+{% macro movie_card(result) -%}
 <div class="card" >
     <div class="card-body">
-        <h3 class="card-title"> {{ movie.name | title}} </h3>
+        <h3 class="card-title"> {% if result.field == ResultField.TITLE %} 
+            {% for word in result.value | title | words %}
+                {% if word in result.words %}
+                <span class="highlight">{{ word }}</span>
+                {% else %}
+                    {{ word }}
+                {% endif %}
+            {% endfor %}
+            {% else %}
+                {{ result.movie.name | title}} </h3>
+            {% endif %}
         <details>
             <summary> View Tags </summary>
-            {% for tag in movie.tags %} 
-             <a class="tag" href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a>
+            {% for tag in result.movie.tags %}
+                {% if result.words.count(tag.value) %}
+                {% set tag_classes = "tag highlight" %}
+                {% else %}
+                {% set tag_classes = "tag" %}
+                {% endif %}
+             <a class="{{tag_classes}}" href="{{url_for('tagged', tag=tag.value)}}"> {{tag.value}}</a>
             {% endfor %}
         </details>
     </div>

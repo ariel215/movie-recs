@@ -34,3 +34,8 @@ a.tag:hover {
     background-color: #D2B48C;
     text-decoration: none;
 }
+
+a.highlight { 
+    background-color: #8FB4AA;
+    color: #F0E68C;
+}

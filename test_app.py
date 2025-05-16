@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch, MagicMock
 from app.app import app_factory, application
 import pytest
 
-from app.model import Movie, Tag
+from app.model import Movie, ResultField, SearchResult, Tag
 
 @pytest.fixture
 def client(small_index):
@@ -55,7 +55,18 @@ def test_show_all_route(client):
 
 @patch('app.app.application.search')
 def test_search_route(mock_search, client):
-    mock_search.return_value = [Mock(name="Movie1"), Mock(name="Movie2")]
+    mock_search.return_value = [
+        SearchResult(
+            ResultField.TAGS,
+            Mock(name="Test Movie", tags=[Mock(value="test")]),
+            ["test"]
+        ),
+        SearchResult(
+            ResultField.TAGS,
+            Mock(name="Another Movie", tags=[Mock(value="test")]),
+            ["test"]
+        )
+    ]
     response = client.get('/search?search-query=test')
     assert response.status_code == 200
     assert b"Movie Recommender -- Results" in response.data
