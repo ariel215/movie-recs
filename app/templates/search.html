@@ -2,7 +2,11 @@
 {% block body -%}
 <h1> Movies with: "{{request}}" </h1>
 <a href="/">Home</a>
-{% for result in results %}
-{{macros.movie_card(result) }}
-{% endfor %}
+{% if results %}
+    {% for result in results %}
+    {{macros.movie_card(result) }}
+    {% endfor %}
+{% else %}
+    <p>No results found for "{{request}}".</p>
+{% endif %}
 {%endblock %}

@@ -59,3 +59,13 @@ def test_search_partial_tags(small_index: model.Index):
     movie_names = [result.movie.name for result in results]
     assert 'The Matrix' in movie_names
     assert 'Apocalypse Now' in movie_names
+
+
+def test_search_ranking(small_index: model.Index):
+    """
+    When searching for multiple tags, the results should be ranked by the number of matching tags.
+    """
+    results = small_index.search('sci-fi action war')
+    assert len(results) == 3
+    names = [result.movie.name for result in results]
+    assert names.index('The Matrix') < names.index('Apocalypse Now')

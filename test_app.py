@@ -71,3 +71,9 @@ def test_search_route(mock_search, client):
     assert response.status_code == 200
     assert b"Movie Recommender -- Results" in response.data
     mock_search.assert_called_with("test")
+
+
+def test_search_route_no_results(client):
+    response = client.get('/search?search-query=nonexistent')
+    assert response.status_code == 200
+    assert b"No results found" in response.data
